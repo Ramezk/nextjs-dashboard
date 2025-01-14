@@ -1,119 +1,148 @@
 import bcrypt from 'bcrypt';
-import { db } from '@vercel/postgres';
+// import { db } from '@vercel/postgres';
+import { PrismaClient } from '@prisma/client'
+
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
 
-const client = await db.connect();
+const prisma = new PrismaClient()
 
-async function seedUsers() {
-  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-  await client.sql`
-    CREATE TABLE IF NOT EXISTS users (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL
-    );
-  `;
+// export async function GET() {
+//   let messges = '';
+//   try {
+//     await prisma.$transaction(
+//       async (tx) => {
+//         const insertedsers = users.map(async (user) => {
+//           const hashedPassword = await bcrypt.hash(user.password, 10);
+//           tx.user.create({
+//             data: {
+//               email: user.email,
+//               id: user.id,
+//               name: user.name,
+//               password: hashedPassword
+//             }
+//           })
+//         });
+//         if (insertedsers.length == 0)
+//           throw new Error(`${insertedsers} doesn't have enough to objects ${insertedsers.length} expected ${users.length}`)
+//         messges += `insertedUsers  ${insertedsers.length} expected ${users.length} `;
+//         const insertedInvoices = invoices.map(async (invoice) => {
+//           tx.invoice.create({
+//             data: {
+//               amount: invoice.amount,
+//               customerId: invoice.customer_id,
+//               status: invoice.status,
+//               date: invoice.date
+//             }
+//           })
+//         });
+//         messges += `insertedInvoices   ${insertedInvoices.length} expected ${invoices.length} `;
+//         const insertedCustomers = customers.map(async (customer) => {
+//           tx.customer.create({
+//             data: {
+//               id: customer.id,
+//               name: customer.name,
+//               email: customer.email,
+//               imageUrl: customer.image_url
+//             }
+//           })
+//         });
+//         messges += `insertedCustomers   ${insertedCustomers.length} expected ${customers.length} `;
+//         const insertedRevenue = revenue.map(async (rev) => {
+//           tx.revenue.create({
+//             data: {
+//               month: rev.month,
+//               revenue: rev.revenue
+//             }
+//           })
+//         });
+//         messges += `insertedRevenue   ${insertedRevenue.length} expected ${revenue.length} `;
 
-  const insertedUsers = await Promise.all(
-    users.map(async (user) => {
-      const hashedPassword = await bcrypt.hash(user.password, 10);
-      return client.sql`
-        INSERT INTO users (id, name, email, password)
-        VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
-        ON CONFLICT (id) DO NOTHING;
-      `;
-    }),
-  );
+//       },
+//       {
+//         maxWait: 5000, // default: 2000
+//         timeout: 10000, // default: 5000
+//         // isolationLevel: 'Serializable', // optional, default defined by database configuration
+//       });
 
-  return insertedUsers;
-}
+//     return Response.json({ message: 'Database seeded successfully', messges })
+//   } catch (err) {
+//     return Response.json({ err }, { status: 500 });
+//   }
+//   //   
+// }
 
-async function seedInvoices() {
-  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-
-  await client.sql`
-    CREATE TABLE IF NOT EXISTS invoices (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      customer_id UUID NOT NULL,
-      amount INT NOT NULL,
-      status VARCHAR(255) NOT NULL,
-      date DATE NOT NULL
-    );
-  `;
-
-  const insertedInvoices = await Promise.all(
-    invoices.map(
-      (invoice) => client.sql`
-        INSERT INTO invoices (customer_id, amount, status, date)
-        VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
-        ON CONFLICT (id) DO NOTHING;
-      `,
-    ),
-  );
-
-  return insertedInvoices;
-}
-
-async function seedCustomers() {
-  await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
-
-  await client.sql`
-    CREATE TABLE IF NOT EXISTS customers (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      image_url VARCHAR(255) NOT NULL
-    );
-  `;
-
-  const insertedCustomers = await Promise.all(
-    customers.map(
-      (customer) => client.sql`
-        INSERT INTO customers (id, name, email, image_url)
-        VALUES (${customer.id}, ${customer.name}, ${customer.email}, ${customer.image_url})
-        ON CONFLICT (id) DO NOTHING;
-      `,
-    ),
-  );
-
-  return insertedCustomers;
-}
-
-async function seedRevenue() {
-  await client.sql`
-    CREATE TABLE IF NOT EXISTS revenue (
-      month VARCHAR(4) NOT NULL UNIQUE,
-      revenue INT NOT NULL
-    );
-  `;
-
-  const insertedRevenue = await Promise.all(
-    revenue.map(
-      (rev) => client.sql`
-        INSERT INTO revenue (month, revenue)
-        VALUES (${rev.month}, ${rev.revenue})
-        ON CONFLICT (month) DO NOTHING;
-      `,
-    ),
-  );
-
-  return insertedRevenue;
-}
 
 export async function GET() {
+  // let messges = '';
+  // try {
+  //   await prisma.$transaction(
+  //     async (tx) => {
+  //       const insertedUsers = await Promise.all(
+  //         users.map(async (u) => {
+  //           // const hashedPassword = await bcrypt.hash(user.password, 10);
+  //           return tx.user.create({
+  //             data: {
+  //               email: u.email,
+  //               id: u.id,
+  //               name: u.name,
+  //               password: u.password,
+  //             },
+  //           });
+  //         })
+  //       );
+  //       if (insertedUsers.length === 0)
+  //         throw new Error(`No users inserted: expected ${users.length}`);
+  //       messges += `InsertedUsers: ${insertedUsers.length}, expected: ${users.length}\n`;
+  //       const insertedCustomers = await Promise.all(
+  //         customers.map(async (customer) => {
+  //           return tx.customer.create({
+  //             data: {
+  //               id: customer.id,
+  //               name: customer.name,
+  //               email: customer.email,
+  //               imageUrl: customer.image_url,
+  //             },
+  //           });
+  //         })
+  //       );
+  //       messges += `InsertedCustomers: ${insertedCustomers.length}, expected: ${customers.length}\n`;
 
-  try {
-    await client.sql`BEGIN`;
-    await seedUsers();
-    await seedCustomers();
-    await seedInvoices();
-    await seedRevenue();
-    await client.sql`COMMIT`;
+  //       const insertedInvoices = await Promise.all(
+  //         invoices.map(async (i) => {
+  //           return tx.invoice.create({
+  //             data: {
+  //               amount: i.amount,
+  //               customerId: i.customer_id,
+  //               status: i.status,
+  //               date: new Date(i.date),
+  //             },
+  //           });
+  //         })
+  //       );
+  //       messges += `InsertedInvoices: ${insertedInvoices.length}, expected: ${invoices.length}\n`;
 
-    return Response.json({ message: 'Database seeded successfully' });
-  } catch (error) {
-    await client.sql`ROLLBACK`;
-    return Response.json({ error }, { status: 500 });
-  }
+
+  //       const insertedRevenue = await Promise.all(
+  //         revenue.map(async (rev) => {
+  //           return tx.revenue.create({
+  //             data: {
+  //               month: rev.month,
+  //               revenue: rev.revenue,
+  //             },
+  //           });
+  //         })
+  //       );
+  //       messges += `InsertedRevenue: ${insertedRevenue.length}, expected: ${revenue.length}\n`;
+  //     },
+  //     {
+  //       maxWait: 5000, // default: 2000
+  //       timeout: 10000, // default: 5000
+  //       isolationLevel: 'Serializable', // optional, default defined by database configuration
+  //     }
+  //   );
+
+  //   return Response.json({ message: 'Database seeded successfully', messges });
+  // } catch (err) {
+  //   return Response.json({ errors: err.message }, { status: 500 });
+  // }
 }
