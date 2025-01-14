@@ -12,7 +12,7 @@ import { prisma } from './prisma';
 import { equal } from 'assert';
 import { Underdog } from 'next/font/google';
 import { invoices } from './placeholder-data';
-import { Console } from 'console';
+import { Console, log } from 'console';
 
 export async function fetchRevenue() {
   try {
@@ -199,12 +199,13 @@ export async function fetchInvoiceById(id: string) {
       where: { id: { equals: id } },
       select: {
         id: true,
-        customerId: true,
         amount: true,
-        status: true,
-
+        customerId: true,
+        date: true,
+        status: true
       }
     });
+    console.log(data);
     return data
     // const invoice = data.map((invoice) => ({
     //   ...invoice,
@@ -221,15 +222,19 @@ export async function fetchInvoiceById(id: string) {
 
 export async function fetchCustomers() {
   try {
-    const data = await sql<CustomerField>`
-      SELECT
-        id,
-        name
-      FROM customers
-      ORDER BY name ASC
-    `;
+    const customers = await prisma.customer.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' }
+    });
+    // const data = await sql<CustomerField>`
+    //   SELECT
+    //     id,
+    //     name
+    //   FROM customers
+    //   ORDER BY name ASC
+    // `;
 
-    const customers = data.rows;
+    // const customers = data.rows;
     return customers;
   } catch (err) {
     console.error('Database Error:', err);
