@@ -19,17 +19,18 @@ export async function createInvoice(formData: FormData) {
 
     const rawFormData = Object.fromEntries(formData.entries())
     const { customerId, amount, status } = CreateInvoice.parse(rawFormData);    // Test it out:
-    console.log(rawFormData);
-    console.log(typeof rawFormData.amount);
-    console.log(typeof amount);
+
     const amountInCents = amount * 100;
     const date = new Date()
     console.log(date);
-    const results = await prisma.invoice.create({ data: { amount: amountInCents, date: date, customerId: customerId, status: status } });
-    console.log(results);
+    try {
+        const results = await prisma.invoice.create({ data: { amount: amountInCents, date: date, customerId: customerId, status: status } });
+        console.log(results);
+    } catch (error) {
+        return { message: 'Database Error: Failed to Create Invoice.' };
+    }
     revalidatePath('/dashboard/invoices');
     redirect('/dashboard/invoices');
-
 }
 
 
@@ -49,15 +50,23 @@ export async function updateInvoice(id: string, formData: FormData) {
     });
 
     const amountInCents = amount * 100;
-    const results = await prisma.invoice.update({ where: { id: id }, data: { amount: amount, status: status, customerId: customerId } });
-    console.log(results);
+    try {
+        const results = await prisma.invoice.update({ where: { id: id }, data: { amount: amount, status: status, customerId: customerId } });
+    } catch (error) {
+        return { message: 'Database Error: Failed to Update Invoice.' };
+    }
     revalidatePath('/dashboard/invoices');
     redirect('/dashboard/invoices');
-
 }
 
-
 export async function deleteInvoice(id: string) {
-    const results = await prisma.invoice.delete({ where: { id: id } });
+    throw new Error('Failed to Delete Invoice');
+    try {
+        const results = await prisma.invoice.delete({ where: { id: id } });
+
+    } catch (error) {
+        return { message: 'Database Error: Failed to Delete Invoice.' };
+    }
     revalidatePath('/dashboard/invoices');
+    return { message: 'Deleted Invoice.' };
 }
