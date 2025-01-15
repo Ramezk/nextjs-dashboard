@@ -152,9 +152,9 @@ export async function fetchFilteredInvoices(
       where: {
         OR: [
           { amount: { equals: r } },
-          { status: { contains: query }, },
-          { customer: { email: { contains: query } } },
-          { customer: { name: { contains: query } } },
+          { status: { contains: query, mode: 'insensitive' }, },
+          { customer: { email: { contains: query, mode: 'insensitive' } } },
+          { customer: { name: { contains: query, mode: 'insensitive' } } },
         ]
       }
     });
@@ -176,9 +176,9 @@ export async function fetchInvoicesPages(query: string) {
       where: {
         OR: [
           { amount: { equals: r } },
-          { status: { contains: query }, },
-          { customer: { email: { contains: query } } },
-          { customer: { name: { contains: query } } },
+          { status: { contains: query, mode: 'insensitive' }, },
+          { customer: { email: { contains: query, mode: 'insensitive' } } },
+          { customer: { name: { contains: query, mode: 'insensitive' } } },
         ]
       }
     });
