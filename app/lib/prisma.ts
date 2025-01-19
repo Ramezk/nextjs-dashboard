@@ -1,7 +1,26 @@
 import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
-    return new PrismaClient();
+    return new PrismaClient({
+        log: [
+            {
+                emit: 'stdout',
+                level: 'query',
+            },
+            {
+                emit: 'stdout',
+                level: 'error',
+            },
+            {
+                emit: 'stdout',
+                level: 'info',
+            },
+            {
+                emit: 'stdout',
+                level: 'warn',
+            },
+        ],
+    })
 };
 
 // Ensure the global object is extended to store the Prisma client
